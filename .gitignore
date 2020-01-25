@@ -68,3 +68,6 @@ target/
 .idea/
 .test_mac
 .pytest_cache/
+
+#VSCode
+.vscode/
