@@ -36,7 +36,7 @@ def valid_mitemp_mac(mac):
         return mac
     raise argparse.ArgumentTypeError('Invalid MiTemp MAC address {}'.format(mac))
 
-backend = None
+BACKEND = None
 
 def get_backend(args):
     """ Returns Bluetooth backend """
@@ -50,54 +50,54 @@ def get_backend(args):
         raise Exception('unknown backend: {}'.format(args.backend))
     return backend
 
-parser = argparse.ArgumentParser()
-parser.add_argument('macs', type=valid_mitemp_mac, nargs="*")
-parser.add_argument('-s', '--server', default='localhost')
-parser.add_argument('-p', '--port', default=1883)
-parser.add_argument('-b', '--backend', choices=['gatttool', 'bluepy', 'pygatt'], default='gatttool')
-parser.add_argument('-d', '--devinfo', action='store_true')
-parser.add_argument('-e', '--health', action='store_true')
-parser.add_argument('-m', '--measurements', action='store_true')
+PARSER = argparse.ArgumentParser()
+PARSER.add_argument('macs', type=valid_mitemp_mac, nargs="*")
+PARSER.add_argument('-s', '--server', default='localhost')
+PARSER.add_argument('-p', '--port', default=1883)
+PARSER.add_argument('-b', '--backend', choices=['gatttool', 'bluepy', 'pygatt'], default='gatttool')
+PARSER.add_argument('-d', '--devinfo', action='store_true')
+PARSER.add_argument('-e', '--health', action='store_true')
+PARSER.add_argument('-m', '--measurements', action='store_true')
 
-args = parser.parse_args()
-backend = get_backend(args)
+ARGS = PARSER.parse_args()
+BACKEND = get_backend(ARGS)
 
-self_mac = getmac.get_mac_address()
-self_eui64 = mac_to_eui64(valid_mac(self_mac))
-mqtt_client_id = "mitemp-mqtt-" + self_eui64
+SELF_MAC = getmac.get_mac_address()
+SELF_EUI64 = mac_to_eui64(valid_mac(SELF_MAC))
+MQTT_CLIENT_ID = "mitemp-mqtt-" + SELF_EUI64
 
-for mitemp_mac in args.macs:
+for mitemp_mac in ARGS.macs:
     mitemp_eui64 = mac_to_eui64(mitemp_mac)
-    topic_device_info = 'OpenCH/Gw/{}/TeHu/{}/Evt/DeviceInfo'.format(self_eui64, mitemp_eui64)
-    topic_health = 'OpenCH/Gw/{}/TeHu/{}/Evt/Health'.format(self_eui64, mitemp_eui64)
-    topic_measurements = 'OpenCH/Gw/{}/TeHu/{}/Evt/Status'.format(self_eui64, mitemp_eui64)
+    topic_device_info = 'OpenCH/Gw/{}/TeHu/{}/Evt/DeviceInfo'.format(SELF_EUI64, mitemp_eui64)
+    topic_health = 'OpenCH/Gw/{}/TeHu/{}/Evt/Health'.format(SELF_EUI64, mitemp_eui64)
+    topic_measurements = 'OpenCH/Gw/{}/TeHu/{}/Evt/Status'.format(SELF_EUI64, mitemp_eui64)
     
-    poller = MiTempBtPoller(mitemp_mac, backend)
+    poller = MiTempBtPoller(mitemp_mac, BACKEND)
     msgs = []
 
     try:
-        if args.devinfo:
+        if ARGS.devinfo:
             payload = '{{"name":"{}","firmware_version":"{}"}}' \
                 .format( \
                     poller.name(), \
                     poller.firmware_version())
             msgs.append({'topic': topic_device_info, 'payload': payload})     
 
-        if args.health:
+        if ARGS.health:
             payload = '{{"measurements":[{{"name":"battery","value":{},"units":"%"}}]}}' \
                 .format( \
                     poller.parameter_value(MI_BATTERY))
             msgs.append({'topic': topic_health, 'payload': payload})     
 
-        if args.measurements:
+        if ARGS.measurements:
             payload = '{{"measurements":[{{"name":"temperature","value":{},"units":"℃"}},{{"name":"humidity","value":{},"units":"%"}}]}}' \
                 .format( \
                     poller.parameter_value(MI_TEMPERATURE), \
                     poller.parameter_value(MI_HUMIDITY))
             msgs.append({'topic': topic_measurements, 'payload': payload}) 
 
-    except Exception as e:
-        print(mitemp_mac + ' mitemp sensor failure: ' + str(e))
+    except Exception as ex:
+        print(mitemp_mac + ' mitemp sensor failure: ' + str(ex))
 
     if len(msgs) > 0:
-        publish.multiple(msgs, hostname = args.server, port = args.port, client_id = mqtt_client_id)
+        publish.multiple(msgs, hostname=ARGS.server, port=ARGS.port, client_id=MQTT_CLIENT_ID)
