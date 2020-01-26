@@ -1,4 +1,4 @@
-# mitemp-mqtt.py - simple MQTT bridge for Xiaomi Mi Temperature and Humidity Sensor with Bleutooth LE and the LCD display
+# Simple MQTT bridge for Xiaomi Mi Temperature and Humidity Sensor with Bleutooth LE and the LCD display
 
 This application lets you read sensor data from a Xiaomi Mi BluetoothLE Temperature and Humidity sensor and publish the readings on MQTT.
 
