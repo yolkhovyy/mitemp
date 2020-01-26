@@ -22,5 +22,5 @@ $ pip3 install git+https://github.com/ratcashdev/mitemp.git
 
 ## crontab
 ```
-*/15 * * * * python3 /home/pi/mitemp/mitemp_mqtt.py 58:2D:34:36:xx:xx -m -e -s mqtt-server
+*/15 * * * * python3 /home/pi/mitemp/mitemp-mqtt.py 58:2D:34:xx:xx:xx -m -e -s mqtt-server
 ```
